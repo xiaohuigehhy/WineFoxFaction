@@ -1,0 +1,9 @@
+{
+    "hud.faction.reignofnether.winefox": "酒狐",
+    "entity.winefoxfaction.winefox": "酒狐",
+    "entity.winefoxfaction.winefox.tooltip1": "§7一只爱喝葡萄酒的狐娘",
+    "entity.winefoxfaction.winefox_blue": "雪狐",
+    "entity.winefoxfaction.winefox_blue.tooltip1": "§7一只爱喝冰葡萄酒的狐娘",
+    "item.winefoxfaction.winefox_spawn_egg": "酒狐单位刷怪蛋",
+    "item.winefoxfaction.winefox_blue_spawn_egg": "雪狐单位刷怪蛋"
+}

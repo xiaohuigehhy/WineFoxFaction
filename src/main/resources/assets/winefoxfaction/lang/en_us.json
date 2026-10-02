@@ -1,0 +1,9 @@
+{
+    "hud.faction.reignofnether.winefox": "Wine Fox",
+    "entity.winefoxfaction.winefox": "Wine Fox",
+    "entity.winefoxfaction.winefox.tooltip1": "§7A fox girl who loves wine",
+    "entity.winefoxfaction.winefox_blue": "Snow Fox",
+    "entity.winefoxfaction.winefox_blue.tooltip1": "§7A fox girl who loves ice wine",
+    "item.winefoxfaction.winefox_spawn_egg": "Wine Fox Spawn Egg",
+    "item.winefoxfaction.winefox_blue_spawn_egg": "Ice Fox Spawn Egg"
+}
