@@ -1,9 +1,18 @@
 {
     "hud.faction.reignofnether.winefox": "Wine Fox",
-    "entity.winefoxfaction.winefox": "Wine Fox",
-    "entity.winefoxfaction.winefox.tooltip1": "§7A fox girl who loves wine",
-    "entity.winefoxfaction.winefox_blue": "Snow Fox",
-    "entity.winefoxfaction.winefox_blue.tooltip1": "§7A fox girl who loves ice wine",
+    "units.winefoxfaction.winefox": "Wine Fox",
+    "units.winefoxfaction.winefox.tooltip1": "A fox girl who loves wine",
+    "units.winefoxfaction.winefox_blue": "Snow Fox",
+    "units.winefoxfaction.winefox_blue.tooltip1": "A fox girl who loves ice wine",
+    "units.winefoxfaction.winefox_salesperson": "Salesperson Fox",
+    "units.winefoxfaction.winefox_salesperson_veteran": "Veteran Salesperson Fox",
+    "units.winefoxfaction.winefox_salesperson.tooltip1": "A fox girl who labors diligently",
+    "units.winefoxfaction.winefox_little": "Little Fox",
+    "units.winefoxfaction.winefox_little.tooltip1": "A little fox girl who loves to eat grapes",
     "item.winefoxfaction.winefox_spawn_egg": "Wine Fox Spawn Egg",
-    "item.winefoxfaction.winefox_blue_spawn_egg": "Ice Fox Spawn Egg"
+    "item.winefoxfaction.winefox_blue_spawn_egg": "Snow Fox Spawn Egg",
+    "item.winefoxfaction.winefox_salesperson_spawn_egg": "Salesperson Fox Spawn Egg",
+    "item.winefoxfaction.winefox_little_spawn_egg": "Little Fox Spawn Egg",
+    "item.winefoxfaction.winefox_snowball": "Wine Fox Snowball",
+    "entity.winefoxfaction.winefox_snowball": "Wine Fox Snowball"
 }

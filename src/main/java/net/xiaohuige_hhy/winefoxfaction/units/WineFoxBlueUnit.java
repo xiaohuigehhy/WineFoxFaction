@@ -1,8 +1,6 @@
 package net.xiaohuige_hhy.winefoxfaction.units;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
-import com.github.tartaricacid.touhoulittlemaid.entity.projectile.DanmakuShoot;
-import com.github.tartaricacid.touhoulittlemaid.init.InitItems;
 import com.github.tartaricacid.touhoulittlemaid.world.data.MaidWorldData;
 import com.mojang.serialization.Dynamic;
 import com.solegendary.reignofnether.ability.Abilities;
@@ -15,7 +13,6 @@ import com.solegendary.reignofnether.unit.Checkpoint;
 import com.solegendary.reignofnether.unit.EnemySearchBehaviour;
 import com.solegendary.reignofnether.unit.UnitAnimationAction;
 import com.solegendary.reignofnether.unit.goals.GarrisonGoal;
-import com.solegendary.reignofnether.unit.goals.MeleeAttackBuildingGoal;
 import com.solegendary.reignofnether.unit.goals.MoveToTargetBlockGoal;
 import com.solegendary.reignofnether.unit.goals.RandomLookAroundUnitGoal;
 import com.solegendary.reignofnether.unit.goals.ReturnResourcesGoal;
@@ -34,7 +31,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -54,6 +50,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.xiaohuige_hhy.winefoxfaction.entities.WineFoxSnowball;
+import net.xiaohuige_hhy.winefoxfaction.register.ModItems;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -65,90 +63,85 @@ import javax.annotation.Nullable;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 
 public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, AttackerUnit, RangedAttackerUnit {
-	
+
 	public static final Abilities ABILITIES = new Abilities();
-	
-	//region
+
 	@Override
 	public void updateAbilityButtons() {
 		abilities = ABILITIES.clone();
 	}
 	Object2ObjectArrayMap<Ability, Float> cooldowns = Unit.createCooldownMap();
 	Object2ObjectArrayMap<Ability, Integer> charges = new Object2ObjectArrayMap<>();
-	
+
 	@Override public boolean hasAutocast(Ability ability) { return autocast == ability; }
 	@Override public void setAutocast(Ability autocast) { this.autocast = autocast; }
-	
-	@Override 
+
+	@Override
 	public Object2ObjectArrayMap<Ability, Float> getAbilityCooldowns() { return cooldowns; }
-	@Override 
+	@Override
 	public Object2ObjectArrayMap<Ability, Integer> getAbilityCharges() { return charges; }
-	
+
 	Ability autocast;
-	
+
 	private int eatingTicksLeft = 0;
 	public void setEatingTicksLeft(int amount) { eatingTicksLeft = amount; }
 	public int getEatingTicksLeft() { return eatingTicksLeft; }
 	private BlockPos anchorPos = new BlockPos(0,0,0);
 	public void setAnchor(BlockPos bp) { anchorPos = bp; }
 	public BlockPos getAnchor() { return anchorPos; }
-	
+
 	private final ArrayList<Checkpoint> checkpoints = new ArrayList<>();
 	public ArrayList<Checkpoint> getCheckpoints() { return checkpoints; }
-	
+
 	GarrisonGoal garrisonGoal;
 	public GarrisonGoal getGarrisonGoal() { return garrisonGoal; }
 	public boolean canGarrison() { return getGarrisonGoal() != null; }
-	
+
 	UsePortalGoal usePortalGoal;
 	public UsePortalGoal getUsePortalGoal() { return usePortalGoal; }
 	public boolean canUsePortal() { return getUsePortalGoal() != null; }
-	
+
 	public Abilities getAbilities() {return abilities;}
 	public List<ItemStack> getItems() {return items;}
 	public MoveToTargetBlockGoal getMoveGoal() {return moveGoal;}
 	public SelectedTargetGoal<? extends LivingEntity> getTargetGoal() {return targetGoal;}
-	public Goal getAttackBuildingGoal() {return attackBuildingGoal;}
+	public Goal getAttackBuildingGoal() {return null;}
 	public Goal getAttackGoal() {return attackGoal;}
 	public ReturnResourcesGoal getReturnResourcesGoal() {return returnResourcesGoal;}
 	public int getMaxResources() {return maxResources;}
-	
+
 	private EnemySearchBehaviour attackSearchBehaviour = EnemySearchBehaviour.NONE;
 	public EnemySearchBehaviour getEnemySearchBehaviour() { return attackSearchBehaviour; }
 	public void setEnemySearchBehaviour(EnemySearchBehaviour behaviour) { attackSearchBehaviour = behaviour; }
-	
+
 	private MoveToTargetBlockGoal moveGoal;
 	private SelectedTargetGoal<? extends LivingEntity> targetGoal;
 	private ReturnResourcesGoal returnResourcesGoal;
-	
+
 	public BlockPos getAttackMoveTarget() { return attackMoveTarget; }
 	public LivingEntity getFollowTarget() { return followTarget; }
 	public boolean getHoldPosition() { return holdPosition; }
 	public void setHoldPosition(boolean holdPosition) { this.holdPosition = holdPosition; }
-	
-	// if true causes moveGoal and attackGoal to work together to allow attack moving
-	// moves to a block but will chase/attack nearby monsters in range up to a certain distance away
+
 	private BlockPos attackMoveTarget = null;
-	private LivingEntity followTarget = null; // if nonnull, continuously moves to the target
+	private LivingEntity followTarget = null;
 	private boolean holdPosition = false;
-	
-	// which player owns this unit? this format ensures its synched to client without having to use packets
+
 	public String getOwnerName() { return this.entityData.get(ownerDataAccessor); }
 	public void setOwnerName(String name) { this.entityData.set(ownerDataAccessor, name); }
 	public static final EntityDataAccessor<String> ownerDataAccessor =
 		SynchedEntityData.defineId(WineFoxBlueUnit.class, EntityDataSerializers.STRING);
-	
-	// which scenario role does this unit use?
+
 	public int getScenarioRoleIndex() { return this.entityData.get(scenarioRoleDataAccessor); }
 	public void setScenarioRoleIndex(int index) { this.entityData.set(scenarioRoleDataAccessor, index); }
 	public static final EntityDataAccessor<Integer> scenarioRoleDataAccessor =
 		SynchedEntityData.defineId(WineFoxBlueUnit.class, EntityDataSerializers.INT);
-	
+
 	public String getOnDeathCommand() { return this.entityData.get(onDeathCommandDataAccessor); }
 	public void setOnDeathCommand(String command) { this.entityData.set(onDeathCommandDataAccessor, command); }
 	public static final EntityDataAccessor<String> onDeathCommandDataAccessor =
 		SynchedEntityData.defineId(WineFoxBlueUnit.class, EntityDataSerializers.STRING);
-	
+
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
@@ -157,54 +150,50 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 		this.entityData.define(onDeathCommandDataAccessor, "");
 		setModelId("geckolib:winefox_blue");
 	}
-	
-	// combat stats
+
 	public boolean getWillRetaliate() {return willRetaliate;}
 	public boolean getAggressiveWhenIdle() {return aggressiveWhenIdle && !isVehicle();}
 	public float getUnitAttackDamage() {return AttackerUnit.super.getUnitAttackDamage();}
-	
+
 	@Nullable
 	public ResourceCost getCost() {return ResourceCosts.VINDICATOR;}
-	public boolean canAttackBuildings() {return getAttackBuildingGoal() != null;}
-	
+	public boolean canAttackBuildings() {return false;}
+
 	public void setAttackMoveTarget(@Nullable BlockPos bp) { this.attackMoveTarget = bp; }
 	public void setFollowTarget(@Nullable LivingEntity target) { this.followTarget = target; }
-	
-	// endregion
-	
-	final static public float attackDamage = 7.0f;
-	final static public float attacksPerSecond = 0.632f; // excludes crossbow charge time
+
+
+	final static public float attackDamage = 4.0f;
+	final static public float attacksPerSecond = 0.632f;
 	final static public float maxHealth = 45.0f;
 	final static public float armorValue = 0.0f;
 	final static public float movementSpeed = 0.24f;
-	final static public float attackRange = 16.0F; // only used by ranged units or melee building attackers
-	final static public float aggroRange = 16;
-	final static public boolean willRetaliate = true; // will attack when hurt by an enemy
+	final static public float attackRange = 14.0F;
+	final static public float aggroRange = 14;
+	final static public boolean willRetaliate = true;
 	final static public boolean aggressiveWhenIdle = true;
-	
+
 	public int maxResources = 100;
-	
-	public int fogRevealDuration = 0; // set > 0 for the client who is attacked by this unit
+
+	public int fogRevealDuration = 0;
 	public int getFogRevealDuration() { return fogRevealDuration; }
 	public void setFogRevealDuration(int duration) { fogRevealDuration = duration; }
-	
+
 	private UnitRangedAttackGoal<? extends LivingEntity> attackGoal;
-	private MeleeAttackBuildingGoal attackBuildingGoal;
-	
+
 	private Abilities abilities = ABILITIES.clone();
 	private final List<ItemStack> items = new ArrayList<>();
-	
+
 	@SuppressWarnings("unchecked")
 	public WineFoxBlueUnit(EntityType<? extends EntityMaid> entityType, Level level) {
 		super((EntityType<EntityMaid>) entityType, level);
 		updateAbilityButtons();
 	}
-	
+
 	@Override
 	protected void dropEquipment() {
 	}
-	
-	// all for animation syncing...
+
 	@Override
 	public void setUnitAttackTarget(@Nullable LivingEntity target) {
 		AttackerUnit.super.setUnitAttackTarget(target);
@@ -215,16 +204,16 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 				UnitAnimationClientboundPacket.sendBasicPacket(UnitAnimationAction.NON_KEYFRAME_STOP, this);
 		}
 	}
-	
+
 	@Override
 	protected void hurtArmor(@NotNull DamageSource damageSource, float damage) {
 	}
-	
+
 	@Override
 	public LivingEntity getTarget() {
 		return targetGoal.getTarget();
 	}
-	
+
 	@Override
 	public void setAttackBuildingTarget(BlockPos preselectedBlockPos, boolean forced) {
 		AttackerUnit.super.setAttackBuildingTarget(preselectedBlockPos, forced);
@@ -236,7 +225,7 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 		if (!this.level().isClientSide())
 			UnitAnimationClientboundPacket.sendBasicPacket(UnitAnimationAction.NON_KEYFRAME_STOP, this);
 	}
-	
+
 	@Override
 	public void onRemovedFromWorld() {
 		super.onRemovedFromWorld();
@@ -247,17 +236,17 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 			}
 		}
 	}
-	
+
 	@Override
 	public @NotNull InteractionResult mobInteract(@NotNull Player playerIn, @NotNull InteractionHand hand) {
 		return InteractionResult.FAIL;
 	}
-	
+
 	@Override
 	public boolean canBrainMoving() {
 		return false;
 	}
-	
+
 	public static AttributeSupplier.@NotNull Builder createAttributes() {
 		return Mob.createMobAttributes()
 			.add(Attributes.MOVEMENT_SPEED, WineFoxBlueUnit.movementSpeed)
@@ -272,14 +261,14 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 			.add(AttributeRegistrar.SIGHT_RANGE.get(), Unit.DEFAULT_SIGHT_RANGE)
 			.add(AttributeRegistrar.MAGIC_DAMAGE_RESIST.get(), 0);
 	}
-	
+
 	public void tick() {
 		this.setCanPickUpLoot(true);
 		super.tick();
 		Unit.tick(this);
 		AttackerUnit.tick(this);
 	}
-	
+
 	@Override
 	public void remove(@NotNull RemovalReason pReason) {
 		if (this.level() instanceof ServerLevel serverLevel) {
@@ -297,38 +286,37 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 		}
 		super.remove(pReason);
 	}
-	
+
 	@Override
 	public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
 		super.addAdditionalSaveData(pCompound);
 		this.addUnitSaveData(pCompound);
 	}
-	
+
 	@Override
 	public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
 		super.readAdditionalSaveData(pCompound);
 		this.readUnitSaveData(pCompound);
 	}
-	
+
 	public void initialiseGoals() {
 		this.usePortalGoal = new UsePortalGoal(this);
 		this.moveGoal = new MoveToTargetBlockGoal(this, false, 0);
 		this.targetGoal = new SelectedTargetGoal<>(this, true, true);
 		this.garrisonGoal = new GarrisonGoal(this);
 		this.attackGoal = new UnitRangedAttackGoal<>(this, 0);
-		this.attackBuildingGoal = new MeleeAttackBuildingGoal(this);
 		this.returnResourcesGoal = new ReturnResourcesGoal(this);
 	}
-	
+
 	@Override
 	protected @NotNull Brain<?> makeBrain(@NotNull Dynamic<?> dynamicIn) {
 		return this.brainProvider().makeBrain(dynamicIn);
 	}
-	
+
 	@Override
 	public void refreshBrain(@NotNull ServerLevel serverWorldIn) {
 	}
-	
+
 	@Override
 	protected void registerGoals() {
 		initialiseGoals();
@@ -336,33 +324,38 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 		
 		this.goalSelector.addGoal(1, new FloatGoal(this));
 		this.goalSelector.addGoal(2, attackGoal);
-		this.goalSelector.addGoal(2, attackBuildingGoal);
 		this.goalSelector.addGoal(2, returnResourcesGoal);
 		this.goalSelector.addGoal(2, garrisonGoal);
 		this.targetSelector.addGoal(2, targetGoal);
 		this.targetSelector.addGoal(3, moveGoal);
 		this.goalSelector.addGoal(4, new RandomLookAroundUnitGoal(this));
 	}
-	
+
 	@Override
 	public void setupEquipmentAndUpgradesServer() {
-		this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(InitItems.HAKUREI_GOHEI.get()));
+		this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModItems.WINEFOX_SNOWBALL.get()));
 	}
 	
 	@Override
 	public void performUnitRangedAttack(LivingEntity pTarget, float velocity) {
-		float speed = (0.3f * (velocity + 1));
-		float distance = this.distanceTo(pTarget);
-		speed = speed + Mth.clamp(distance / 40f - 0.4f, 0, 2.4f);
-		DanmakuShoot.create().setWorld(this.level()).setThrower(this)
-			.setTarget(pTarget).setRandomColor().setRandomType()
-			.setDamage(this.getUnitAttackDamage()).setGravity(0)
-			.setVelocity(speed)
-			.setInaccuracy(0)
-			.aimedShot();
+		if (pTarget == null)
+			return;
+		
+		this.swing(InteractionHand.MAIN_HAND);
+		
+		WineFoxSnowball snowball = new WineFoxSnowball(this.level(), this);
+		double d0 = pTarget.getX() - this.getX();
+		double d1 = pTarget.getY(0.3333333333333333) - snowball.getY();
+		double d2 = pTarget.getZ() - this.getZ();
+		double d3 = Math.sqrt(d0 * d0 + d2 * d2);
+		
+		if (pTarget.getEyeHeight() <= 1.0f)
+			d1 -= (1.0f - pTarget.getEyeHeight());
+		
+		snowball.shoot(d0, d1 + d3 * 0.20000000298023224, d2, 1.6F, 0);
+		level.addFreshEntity(snowball);
 		if (!level().isClientSide() && pTarget instanceof Unit unit)
 			FogOfWarClientboundPacket.revealRangedUnit(unit.getOwnerName(), this.getId());
-		getMainHandItem().setDamageValue(0);
 	}
 	
 	
@@ -377,4 +370,5 @@ public class WineFoxBlueUnit extends EntityMaid implements IWineFoxUnit, Attacke
 	) {
 		return pSpawnData;
 	}
+	
 }

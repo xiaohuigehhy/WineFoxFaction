@@ -10,9 +10,9 @@ import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
 import net.xiaohuige_hhy.winefoxfaction.register.ModProductionItems;
 
 public class WineFoxFaction {
-	
+
 	public static Faction WINE_FOX;
-	
+
 	public static void register() {
 		WINE_FOX = Factions.register("winefox", new Faction()
 			.setWorkerIcon(ResourceLocation.fromNamespaceAndPath(ReignOfNether.MOD_ID, "textures/mobheads/villager.png"))
@@ -20,9 +20,10 @@ public class WineFoxFaction {
 			.setSound(SoundRegistrar.VILLAGER_CALM_THEME_SONG.get())
 			.setCustomBuildingCondition((cb) -> cb.buildableByVillagers)
 		);
-		// 将 WineFoxUnit 注册为该派系的可生产单位
+		
+		Factions.registerWorkerEntity(WINE_FOX, ModEntities.WINEFOX_SALESPERSON.get(), ModProductionItems.WINE_FOX_SALESPERSON);
+		Factions.registerScoutEntity(WINE_FOX, ModEntities.WINEFOX_LITTLE.get(), ModProductionItems.WINE_FOX_LITTLE);
 		Factions.registerEntity(WINE_FOX, ModEntities.WINE_FOX.get(), ModProductionItems.WINE_FOX);
-		// 将 WineFoxBlueUnit 注册为该派系的可生产单位
 		Factions.registerEntity(WINE_FOX, ModEntities.WINEFOX_BLUE.get(), ModProductionItems.WINE_FOX_BLUE);
 	}
 }

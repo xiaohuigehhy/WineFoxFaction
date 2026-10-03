@@ -1,9 +1,18 @@
 {
-    "hud.faction.reignofnether.winefox": "酒狐",
-    "entity.winefoxfaction.winefox": "酒狐",
-    "entity.winefoxfaction.winefox.tooltip1": "§7一只爱喝葡萄酒的狐娘",
-    "entity.winefoxfaction.winefox_blue": "雪狐",
-    "entity.winefoxfaction.winefox_blue.tooltip1": "§7一只爱喝冰葡萄酒的狐娘",
-    "item.winefoxfaction.winefox_spawn_egg": "酒狐单位刷怪蛋",
-    "item.winefoxfaction.winefox_blue_spawn_egg": "雪狐单位刷怪蛋"
+  "hud.faction.reignofnether.winefox": "酒狐",
+  "units.winefoxfaction.winefox": "酒狐",
+  "units.winefoxfaction.winefox.tooltip1": "一只爱喝葡萄酒的狐娘，",
+  "units.winefoxfaction.winefox_blue": "雪狐",
+  "units.winefoxfaction.winefox_blue.tooltip1": "一只爱喝冰葡萄酒的狐娘",
+  "units.winefoxfaction.winefox_salesperson": "店员酒狐",
+  "units.winefoxfaction.winefox_salesperson_veteran": "老练店员酒狐",
+  "units.winefoxfaction.winefox_salesperson.tooltip1": "一只辛勤工作的狐娘",
+  "units.winefoxfaction.winefox_little": "小酒狐",
+  "units.winefoxfaction.winefox_little.tooltip1": "一只爱吃葡萄的小狐娘",
+  "item.winefoxfaction.winefox_spawn_egg": "酒狐单位刷怪蛋",
+  "item.winefoxfaction.winefox_blue_spawn_egg": "雪狐单位刷怪蛋",
+  "item.winefoxfaction.winefox_salesperson_spawn_egg": "店员酒狐单位刷怪蛋",
+  "item.winefoxfaction.winefox_little_spawn_egg": "小酒狐单位刷怪蛋",
+  "item.winefoxfaction.winefox_snowball": "酒狐雪球",
+  "entity.winefoxfaction.winefox_snowball": "酒狐雪球"
 }

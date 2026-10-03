@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ConfigClientEvents.class)
 public class ConfigClientEventsMixin {
-	
+
 	@Inject(method = "onPlayerJoin", at = @At(value = "INVOKE",
 			target = "Lcom/solegendary/reignofnether/resources/ResourceCosts;deferredLoadResourceCosts()V"),remap = false)
 	private static void injectModResourceCosts(PlayerEvent.PlayerLoggedInEvent evt, CallbackInfo ci) {

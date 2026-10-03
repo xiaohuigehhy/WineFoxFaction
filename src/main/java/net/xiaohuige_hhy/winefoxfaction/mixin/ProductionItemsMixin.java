@@ -14,8 +14,7 @@ import java.util.List;
 
 @Mixin(ProductionItems.class)
 public class ProductionItemsMixin {
-	
-	// 重定向 ALL = List.of(...) 的构造，在原有生产项基础上追加 ModProductionItems.ALL
+
 	@Redirect(method = "<clinit>", at = @At(value = "INVOKE",
 			target = "Ljava/util/List;of([Ljava/lang/Object;)Ljava/util/List;"))
 	private static List<ProductionItem> appendModProductionItems(Object[] elements) {

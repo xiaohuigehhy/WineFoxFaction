@@ -23,46 +23,46 @@ import net.xiaohuige_hhy.winefoxfaction.register.ModResourceCosts;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WineFoxProd extends ProductionItem implements IUnitProductionItem {
+public class WineFoxLittleProd extends ProductionItem implements IUnitProductionItem {
 
-	public final static String itemName = "Wine Fox";
-	public final static ResourceCost cost = ModResourceCosts.WINE_FOX;
+	public final static String itemName = "Wine Fox Little";
+	public final static ResourceCost cost = ModResourceCosts.WINE_FOX_LITTLE;
 
-	public WineFoxProd() {
+	public WineFoxLittleProd() {
 		super(cost);
 		this.onComplete = (Level level, ProductionPlacement placement) -> {
 			if (!level.isClientSide())
-				placement.produceUnit((ServerLevel) level, ModEntities.WINE_FOX.get(), placement.ownerName, true);
+				placement.produceUnit((ServerLevel) level, ModEntities.WINEFOX_LITTLE.get(), placement.ownerName, true);
 		};
 	}
 
 	public String getItemName() {
-		return WineFoxProd.itemName;
+		return WineFoxLittleProd.itemName;
 	}
 
 	public UnitSpawnButton getPlaceButton() {
 		return new UnitSpawnButton(
 			itemName,
-			ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, "textures/mobheads/winefox.png"),
+			ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, "textures/mobheads/winefox_little.png"),
 			List.of(
-				Component.translatable("units.winefoxfaction.winefox").withStyle(Style.EMPTY.withBold(true)).getVisualOrderText(),
+				Component.translatable("units.winefoxfaction.winefox_little").withStyle(Style.EMPTY.withBold(true)).getVisualOrderText(),
 				FormattedCharSequence.EMPTY,
-				Component.translatable("units.winefoxfaction.winefox.tooltip1").getVisualOrderText()
+				Component.translatable("units.winefoxfaction.winefox_little.tooltip1").getVisualOrderText()
 			)
 		);
 	}
 
 	public StartProductionButton getStartButton(ProductionPlacement prodBuilding, Keybinding hotkey) {
 		List<FormattedCharSequence> tooltipLines = new ArrayList<>(List.of(
-			Component.translatable("units.winefoxfaction.winefox").withStyle(Style.EMPTY.withBold(true)).getVisualOrderText(),
+			Component.translatable("units.winefoxfaction.winefox_little").withStyle(Style.EMPTY.withBold(true)).getVisualOrderText(),
 			ResourceCosts.getFormattedCost(cost),
 			ResourceCosts.getFormattedPopAndTime(cost),
 			FormattedCharSequence.forward("", Style.EMPTY),
-			Component.translatable("units.winefoxfaction.winefox.tooltip1").getVisualOrderText()
+			Component.translatable("units.winefoxfaction.winefox_little.tooltip1").getVisualOrderText()
 		));
 		return new StartProductionButton(
-			WineFoxProd.itemName,
-			ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, "textures/mobheads/winefox.png"),
+			WineFoxLittleProd.itemName,
+			ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, "textures/mobheads/winefox_little.png"),
 			hotkey,
 			() -> false,
 			() -> true,
@@ -73,8 +73,8 @@ public class WineFoxProd extends ProductionItem implements IUnitProductionItem {
 
 	public StopProductionButton getCancelButton(ProductionPlacement prodBuilding, boolean first) {
 		return new StopProductionButton(
-			WineFoxProd.itemName,
-			ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, "textures/mobheads/winefox.png"),
+			WineFoxLittleProd.itemName,
+			ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, "textures/mobheads/winefox_little.png"),
 			prodBuilding,
 			this,
 			first

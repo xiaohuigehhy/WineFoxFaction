@@ -5,15 +5,18 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "winefoxfaction.refmap.json",
   "mixins": [
+    "BuildingPlacementMixin",
     "EntityRegistrarMixin",
     "MiscUtilMixin",
-    "ProductionItemsMixin"
+    "ProductionItemsMixin",
+    "UnitServerEventsMixin"
   ],
   "client": [
     "ConfigClientEventsMixin",
     "ControlGroupMixin",
     "HudClientEventsMixin",
-    "ItemShopMenuMixin"
+    "ItemShopMenuMixin",
+    "UnitClientEventsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

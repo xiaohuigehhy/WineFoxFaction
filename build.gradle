@@ -67,7 +67,7 @@ minecraft {
     // However, it must be at "META-INF/accesstransformer.cfg" in the final mod jar to be loaded by Forge.
     // This default location is a best practice to automatically put the file in the right place in the final jar.
     // See https://docs.minecraftforge.net/en/latest/advanced/accesstransformers/ for more information.
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -164,11 +164,12 @@ dependencies {
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
     // The group id is ignored when searching -- in this case, it is "blank"
     // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
-    // NOTE: must be the *Forge 1.20.1* build of Touhou Little Maid (jar contains META-INF/mods.toml).
-    // NeoForge 1.21.1 builds ship META-INF/neoforge.mods.toml only, so Forge silently ignores them
-    // and EntityMaid ends up missing at runtime (ClassNotFoundException).
     implementation fg.deobf("curse.maven:touhou-little-maid-355044:8061847")
     implementation fg.deobf("local:reignofnether:1.4.4d")
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.2.0"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:0.2.0")) {
+        jarJar.ranged(it, "[0.2.0,)")
+    }
 
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
