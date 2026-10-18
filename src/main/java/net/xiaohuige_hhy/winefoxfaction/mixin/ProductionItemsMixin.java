@@ -3,7 +3,7 @@ package net.xiaohuige_hhy.winefoxfaction.mixin;
 import com.solegendary.reignofnether.building.production.ProductionItem;
 import com.solegendary.reignofnether.building.production.ProductionItems;
 
-import net.xiaohuige_hhy.winefoxfaction.register.ModProductionItems;
+import net.xiaohuige_hhy.winefoxfaction.init.ModProductionItems;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

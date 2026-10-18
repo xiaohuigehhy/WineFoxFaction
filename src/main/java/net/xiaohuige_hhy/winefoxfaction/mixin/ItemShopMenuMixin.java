@@ -6,7 +6,7 @@ import com.solegendary.reignofnether.items.ItemShopMenu;
 
 import net.minecraft.resources.ResourceLocation;
 import net.xiaohuige_hhy.winefoxfaction.WineFoxFactionMod;
-import net.xiaohuige_hhy.winefoxfaction.units.IWineFoxUnit;
+import net.xiaohuige_hhy.winefoxfaction.units.AbstractWineFoxUnit;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,7 +20,7 @@ public class ItemShopMenuMixin {
 			ordinal = 0), remap = false)
 	private static ResourceLocation redirectIconNamespace(String namespace, String path) {
 		ItemShopPlacement shop = ItemClientEvents.openItemShop;
-		if (shop != null && shop.getServedUnit() instanceof IWineFoxUnit)
+		if (shop != null && shop.getServedUnit() instanceof AbstractWineFoxUnit)
 			return ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, path);
 		return ResourceLocation.fromNamespaceAndPath(namespace, path);
 	}

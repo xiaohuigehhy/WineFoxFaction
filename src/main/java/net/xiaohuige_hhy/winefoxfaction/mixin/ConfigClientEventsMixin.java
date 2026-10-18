@@ -3,7 +3,7 @@ package net.xiaohuige_hhy.winefoxfaction.mixin;
 import com.solegendary.reignofnether.config.ConfigClientEvents;
 
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.xiaohuige_hhy.winefoxfaction.register.ModResourceCosts;
+import net.xiaohuige_hhy.winefoxfaction.init.ModResourceCosts;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

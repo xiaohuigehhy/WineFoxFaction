@@ -6,8 +6,8 @@ import com.solegendary.reignofnether.faction.Factions;
 import com.solegendary.reignofnether.registrars.SoundRegistrar;
 
 import net.minecraft.resources.ResourceLocation;
-import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
-import net.xiaohuige_hhy.winefoxfaction.register.ModProductionItems;
+import net.xiaohuige_hhy.winefoxfaction.init.ModEntities;
+import net.xiaohuige_hhy.winefoxfaction.init.ModProductionItems;
 
 public class WineFoxFaction {
 
@@ -25,5 +25,6 @@ public class WineFoxFaction {
 		Factions.registerScoutEntity(WINE_FOX, ModEntities.WINEFOX_LITTLE.get(), ModProductionItems.WINE_FOX_LITTLE);
 		Factions.registerEntity(WINE_FOX, ModEntities.WINE_FOX.get(), ModProductionItems.WINE_FOX);
 		Factions.registerEntity(WINE_FOX, ModEntities.WINEFOX_BLUE.get(), ModProductionItems.WINE_FOX_BLUE);
+		Factions.registerEntity(WINE_FOX, ModEntities.WINEFOX_MAGICAL.get(), ModProductionItems.WINE_FOX_MAGICAL);
 	}
 }

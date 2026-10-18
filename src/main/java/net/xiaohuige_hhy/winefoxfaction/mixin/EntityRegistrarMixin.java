@@ -6,9 +6,10 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.xiaohuige_hhy.winefoxfaction.productions.WineFoxBlueProd;
 import net.xiaohuige_hhy.winefoxfaction.productions.WineFoxLittleProd;
+import net.xiaohuige_hhy.winefoxfaction.productions.WineFoxMagicalProd;
 import net.xiaohuige_hhy.winefoxfaction.productions.WineFoxProd;
 import net.xiaohuige_hhy.winefoxfaction.productions.WineFoxSalespersonProd;
-import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
+import net.xiaohuige_hhy.winefoxfaction.init.ModEntities;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,6 +26,7 @@ public class EntityRegistrarMixin {
 				switch (unitName) {
 					case WineFoxProd.itemName -> ModEntities.WINE_FOX.get();
 					case WineFoxBlueProd.itemName -> ModEntities.WINEFOX_BLUE.get();
+					case WineFoxMagicalProd.itemName -> ModEntities.WINEFOX_MAGICAL.get();
 					case WineFoxSalespersonProd.itemName -> ModEntities.WINEFOX_SALESPERSON.get();
 					case WineFoxLittleProd.itemName -> ModEntities.WINEFOX_LITTLE.get();
 

@@ -2,13 +2,17 @@ package net.xiaohuige_hhy.winefoxfaction.entities;
 
 import com.solegendary.reignofnether.building.BuildingPlacement;
 import com.solegendary.reignofnether.building.addon.GarrisonableBuildingAddon;
+import com.solegendary.reignofnether.faction.Factions;
 import com.solegendary.reignofnether.unit.interfaces.Unit;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.projectile.Snowball;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
@@ -16,14 +20,15 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
-import net.xiaohuige_hhy.winefoxfaction.register.ModItems;
+import net.xiaohuige_hhy.winefoxfaction.init.ModEntities;
+import net.xiaohuige_hhy.winefoxfaction.init.ModItems;
 
 import org.jetbrains.annotations.NotNull;
 
 public class WineFoxSnowball extends Snowball {
 	
-	public float damage = 0.0f;
+	private static final EntityDataAccessor<Float> DATA_DAMAGE =
+		SynchedEntityData.defineId(WineFoxSnowball.class, EntityDataSerializers.FLOAT);
 	
 	public WineFoxSnowball(EntityType<? extends WineFoxSnowball> entityType, Level level) {
 		super(entityType, level);
@@ -35,8 +40,31 @@ public class WineFoxSnowball extends Snowball {
 		this.setPos(livingEntity.getX(), livingEntity.getEyeY() - 0.1, livingEntity.getZ());
 	}
 	
+	@Override
+	protected void defineSynchedData() {
+		super.defineSynchedData();
+		this.entityData.define(DATA_DAMAGE, 0.0f);
+	}
+	
+	@Override
+	public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+		super.addAdditionalSaveData(tag);
+		tag.putFloat("Damage", getDamage());
+	}
+	
+	@Override
+	public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+		super.readAdditionalSaveData(tag);
+		if (tag.contains("Damage"))
+			setDamage(tag.getFloat("Damage"));
+	}
+	
+	public float getDamage() {
+		return this.entityData.get(DATA_DAMAGE);
+	}
+	
 	public void setDamage(float damage) {
-		this.damage = damage;
+		this.entityData.set(DATA_DAMAGE, damage);
 	}
 	
 	public boolean isNoPhysics() {
@@ -60,7 +88,9 @@ public class WineFoxSnowball extends Snowball {
 	@Override
 	protected void onHitEntity(EntityHitResult p_37404_) {
 		Entity entity = p_37404_.getEntity();
-		float i = ((entity instanceof Blaze ? 3 : 0) + damage);
+		float i = getDamage();
+		if (entity instanceof Unit unit)
+			i += ((Factions.getFaction(unit).equals(Factions.PIGLINS) ? 3 : 0));
 		entity.hurt(this.damageSources().thrown(this, this.getOwner()), i);
 	}
 	

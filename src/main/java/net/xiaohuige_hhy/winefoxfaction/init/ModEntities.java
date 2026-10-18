@@ -1,4 +1,4 @@
-package net.xiaohuige_hhy.winefoxfaction.register;
+package net.xiaohuige_hhy.winefoxfaction.init;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -8,6 +8,7 @@ import net.minecraftforge.registries.RegistryObject;
 import net.xiaohuige_hhy.winefoxfaction.entities.WineFoxSnowball;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxBlueUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxLittleUnit;
+import net.xiaohuige_hhy.winefoxfaction.units.WineFoxMagicalUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxSalespersonUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxUnit;
 
@@ -25,6 +26,10 @@ public final class ModEntities {
 	public static final RegistryObject<EntityType<WineFoxBlueUnit>> WINEFOX_BLUE = ENTITIES.register("winefox_blue",
 		() -> EntityType.Builder.of(WineFoxBlueUnit::new, MobCategory.CREATURE)
 			.sized(0.6f, 1.5f).clientTrackingRange(10).build(MOD_ID + ":winefox_blue"));
+
+	public static final RegistryObject<EntityType<WineFoxMagicalUnit>> WINEFOX_MAGICAL = ENTITIES.register("winefox_magical",
+		() -> EntityType.Builder.of(WineFoxMagicalUnit::new, MobCategory.CREATURE)
+			.sized(0.6f, 1.5f).clientTrackingRange(10).build(MOD_ID + ":winefox_magical"));
 
 	public static final RegistryObject<EntityType<WineFoxSalespersonUnit>> WINEFOX_SALESPERSON = ENTITIES.register("winefox_salesperson",
 		() -> EntityType.Builder.of(WineFoxSalespersonUnit::new, MobCategory.CREATURE)

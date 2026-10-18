@@ -27,7 +27,7 @@ public class WineFoxSnowballItem extends Item {
 			WineFoxSnowball snowball = new WineFoxSnowball(level, player);
 			snowball.setItem(itemstack);
 			snowball.setDamage(2.0f);
-			snowball.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 3.0F, 1.0F);
+			snowball.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.6F, 1.0F);
 			level.addFreshEntity(snowball);
 		}
 

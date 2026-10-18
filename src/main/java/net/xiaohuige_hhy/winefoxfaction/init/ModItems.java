@@ -1,4 +1,4 @@
-package net.xiaohuige_hhy.winefoxfaction.register;
+package net.xiaohuige_hhy.winefoxfaction.init;
 
 import static net.xiaohuige_hhy.winefoxfaction.WineFoxFactionMod.MOD_ID;
 
@@ -15,6 +15,8 @@ public final class ModItems {
 		() -> new ForgeSpawnEggItem(ModEntities.WINE_FOX, 0x722f37, 0xf7c5c5, new Item.Properties()));
 	public static final RegistryObject<ForgeSpawnEggItem> WINE_FOX_BLUE_EGG = ITEMS.register("winefox_blue_spawn_egg",
 		() -> new ForgeSpawnEggItem(ModEntities.WINEFOX_BLUE, 0x722f37, 0xf7c5c5, new Item.Properties()));
+	public static final RegistryObject<ForgeSpawnEggItem> WINE_FOX_MAGICAL_EGG = ITEMS.register("winefox_magical_spawn_egg",
+		() -> new ForgeSpawnEggItem(ModEntities.WINEFOX_MAGICAL, 0x722f37, 0xf7c5c5, new Item.Properties()));
 	public static final RegistryObject<ForgeSpawnEggItem> WINE_FOX_SALESPERSON_EGG = ITEMS.register("winefox_salesperson_spawn_egg",
 		() -> new ForgeSpawnEggItem(ModEntities.WINEFOX_SALESPERSON, 0x722f37, 0xf7c5c5, new Item.Properties()));
 	public static final RegistryObject<ForgeSpawnEggItem> WINE_FOX_LITTLE_EGG = ITEMS.register("winefox_little_spawn_egg",

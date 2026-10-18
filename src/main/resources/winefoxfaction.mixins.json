@@ -8,12 +8,14 @@
     "BuildingPlacementMixin",
     "EntityRegistrarMixin",
     "MiscUtilMixin",
+    "PlayerClientEventsMixin",
     "ProductionItemsMixin",
     "UnitServerEventsMixin"
   ],
   "client": [
     "ConfigClientEventsMixin",
     "ControlGroupMixin",
+    "GeckoMaidEntityCapabilityProviderMixin",
     "HudClientEventsMixin",
     "ItemShopMenuMixin",
     "UnitClientEventsMixin"

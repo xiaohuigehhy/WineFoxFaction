@@ -31,9 +31,9 @@ public class UnitServerEventsMixin {
 	private static void injectSalespersonHunterExp(LivingDeathEvent evt, CallbackInfo ci) {
 		if (evt.getSource().getEntity() instanceof WineFoxSalespersonUnit sUnit &&
 			ResourceSources.isHuntableAnimal(evt.getEntity())) {
-			sUnit.incrementExp(1);
+			sUnit.incrementExp(50);
 			if (!(evt.getEntity() instanceof Chicken))
-				sUnit.incrementExp(1);
+				sUnit.incrementExp(50);
 		}
 	}
 

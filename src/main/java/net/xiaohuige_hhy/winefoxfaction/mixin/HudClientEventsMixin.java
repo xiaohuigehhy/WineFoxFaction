@@ -8,8 +8,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.xiaohuige_hhy.winefoxfaction.WineFoxFactionMod;
-import net.xiaohuige_hhy.winefoxfaction.units.IWineFoxUnit;
+import net.xiaohuige_hhy.winefoxfaction.units.AbstractWineFoxUnit;
+import net.xiaohuige_hhy.winefoxfaction.units.WineFoxBlueUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxSalespersonUnit;
+import net.xiaohuige_hhy.winefoxfaction.units.WineFoxUnit;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -30,7 +32,7 @@ public class HudClientEventsMixin {
 		winefoxfaction$currentUnit = entity;
 		builder.entity(entity);
 
-		if (entity instanceof IWineFoxUnit) {
+		if (entity instanceof AbstractWineFoxUnit) {
 			String unitName = MiscUtil.getEntityIconName(entity);
 			String buttonImagePath = entity.isVehicle()
 					? "textures/mobheads/" + unitName + "_half.png"
@@ -45,7 +47,7 @@ public class HudClientEventsMixin {
 			target = "Lnet/minecraft/resources/ResourceLocation;fromNamespaceAndPath(Ljava/lang/String;Ljava/lang/String;)Lnet/minecraft/resources/ResourceLocation;",
 			ordinal = 3), remap = false)
 	private static ResourceLocation redirectBgIconNamespace(String namespace, String path) {
-		if (winefoxfaction$currentUnit != null && winefoxfaction$currentUnit.getFirstPassenger() instanceof IWineFoxUnit)
+		if (winefoxfaction$currentUnit != null && winefoxfaction$currentUnit.getFirstPassenger() instanceof AbstractWineFoxUnit)
 			return ResourceLocation.fromNamespaceAndPath(WineFoxFactionMod.MOD_ID, path);
 		return ResourceLocation.fromNamespaceAndPath(namespace, path);
 	}
@@ -57,6 +59,12 @@ public class HudClientEventsMixin {
 				cir.setReturnValue(Component.translatable("units.winefoxfaction.winefox_salesperson_veteran").getString());
 			else 
 				cir.setReturnValue(Component.translatable("units.winefoxfaction.winefox_salesperson").getString());
+		if (entity instanceof WineFoxUnit) {
+			cir.setReturnValue(Component.translatable("units.winefoxfaction.winefox").getString());
+		}
+		if (entity instanceof WineFoxBlueUnit) {
+			cir.setReturnValue(Component.translatable("units.winefoxfaction.winefox_blue").getString());
+		}
 	}
 
 }

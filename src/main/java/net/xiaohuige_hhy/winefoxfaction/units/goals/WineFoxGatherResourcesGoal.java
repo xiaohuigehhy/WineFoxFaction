@@ -6,7 +6,6 @@ import static com.solegendary.reignofnether.blocks.BlockUtils.isLogBlock;
 import com.solegendary.reignofnether.ability.heroAbilities.enchanter.CivilEnchantment;
 import com.solegendary.reignofnether.building.BuildingBlock;
 import com.solegendary.reignofnether.building.BuildingUtils;
-import com.solegendary.reignofnether.fogofwar.FogOfWarClientEvents;
 import com.solegendary.reignofnether.registrars.BlockRegistrar;
 import com.solegendary.reignofnether.research.ResearchServerEvents;
 import com.solegendary.reignofnether.resources.ResourceCosts;
@@ -23,6 +22,7 @@ import com.solegendary.reignofnether.unit.packets.UnitSyncClientboundPacket;
 import com.solegendary.reignofnether.util.MiscUtil;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
@@ -37,48 +37,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import javax.annotation.Nullable;
-
-// Move towards the nearest open resource blocks and start gathering them
-// Can be toggled between food, wood and ore, and disabled by clicking
 
 public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 	
+	
 	private static final int REACH_RANGE = 5;
-	// How far below a resource block a worker may stand and still reach it: mining reach is REACH_RANGE (3D),
-	// so standing ~4 below an adjacent column keeps it in range (sqrt(1^2 + 4^2) < 5).
+	
 	private static final int MAX_REACH_DOWN = 4;
-	private static final int DEFAULT_MAX_GATHER_TICKS = 600; // ticks to gather blocks - actual ticks may be lower, depending on the ResourceSource targeted
-	private float gatherTicksLeft = DEFAULT_MAX_GATHER_TICKS;
-	private static final int MAX_SEARCH_CD_TICKS = 40; // while idle, worker will look for a new block once every this number of ticks (searching is expensive!)
-	private int searchCdTicksLeft = 0;
-	private int failedSearches = 0; // number of times we've failed to search for a new block - as this increases slow down or stop searching entirely to prevent lag
+	private static final int DEFAULT_MAX_GATHER_TICKS = 600;
+	private static final int MAX_SEARCH_CD_TICKS = 40;
 	private static final int MAX_FAILED_SEARCHES = 4;
-	private static final float TICK_CD = 20; // only tick down gather time once this many ticks to reduce processing requirements
+	private static final float TICK_CD = 20;
+	
+	
+	private float gatherTicksLeft = DEFAULT_MAX_GATHER_TICKS;
+	private int searchCdTicksLeft = 0;
+	private int failedSearches = 0;
 	private float cdTicksLeft = TICK_CD;
-	public static final int NO_TARGET_TIMEOUT = 50; // if we reach this time without progressing a gather tick while having navigation done, then switch a new target
-	public static final int IDLE_TIMEOUT = 200; // ticks spent without a target to be considered idle
-	private int ticksWithoutTarget = 0; // ticks spent without an active gather target (only increments serverside)
-	private int ticksIdle = IDLE_TIMEOUT; // ticksWithoutTarget but never reset unless we've reacquired a target - used for idle checks
-	private int ticksStationaryWithTarget = 0; // ticks that the worker hasn't moved and gatherTarget != null
-	public static final int TICKS_STATIONARY_TIMEOUT = 100; // ticks that the worker hasn't moved and gatherTarget != null
+	private int ticksWithoutTarget = 0;
+	private int ticksStationaryWithTarget = 0;
 	private BlockPos lastOnPos = null;
-	private BlockPos altSearchPos = null; // block search origin that may be used instead of the mob position
-	// Whether the worker is in range and gathering, computed authoritatively on the SERVER and synced to the
-	// client (mirrors BuildRepairGoal.isBuildingServerside). The client must not recompute isBlockInRange
-	// itself - its entity position is interpolated, so it would disagree with the server. Set in
-	// UnitSyncWorkerClientBoundPacket via setIsGatheringServerside.
-	private boolean isGatheringServerside = false;
+	private BlockPos altSearchPos = null;
 	
-	public void setIsGatheringServerside(boolean isGathering) {
-		this.isGatheringServerside = isGathering;
-	}
-	
-	private int getReplantWoodCost() {
-		return ResourceCosts.REDUCED_REPLANT_WOOD_COST;
-	}
-	
-	// whenever we attempt to assign a block as a target it must pass this test
 	private final Predicate<BlockPos> BLOCK_CONDITION = bp -> {
 		BlockState bs = mob.level().getBlockState(bp);
 		BlockState bsAbove = mob.level().getBlockState(bp.above());
@@ -87,25 +67,22 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 		if (!mob.level().getWorldBorder().isWithinBounds(bp))
 			return false;
 		
-		// is a valid resource block and meets the target ResourceSource's blockstate condition
-		if (resBlock == null || resBlock.resourceName != data.targetResourceName) // || resBlock.name.equals("Leaves")
+		if (resBlock == null || resBlock.resourceName != data.targetResourceName)
 			return false;
 		if (!resBlock.blockStateTest.test(bs))
 			return false;
 		
-		// if the worker is farming, stick to only the assigned farm
+		
 		if (data.targetFarm != null && !data.targetFarm.isPosInsideBuilding(bp))
 			return false;
 		
 		if (bs.getBlock() == Blocks.FARMLAND || bs.getBlock() == Blocks.SOUL_SAND) {
 			if (!bsAbove.isAir() || !canAffordReplant() || !BuildingUtils.isPosInsideAnyBuilding(mob.level().isClientSide(), bp))
 				return false;
-		}
-		// is not part of a building (unless farming)
-		else if (data.targetFarm == null && BuildingUtils.isPosInsideAnyBuilding(mob.level().isClientSide(), bp))
+		} else if (data.targetFarm == null && BuildingUtils.isPosInsideAnyBuilding(mob.level().isClientSide(), bp))
 			return false;
 		
-		// not covered by solid blocks
+		
 		boolean hasClearNeighbour = false;
 		for (BlockPos adjBp : List.of(bp.above(), bp.north(), bp.south(), bp.east(), bp.west())) {
 			if (ResourceSources.isClearMaterial(mob.level().getBlockState(adjBp))) {
@@ -116,14 +93,12 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 		if (!hasClearNeighbour)
 			return false;
 		
-		// must have a cell a worker can actually STAND in (floor below, head clear) within mining reach -
-		// rejects blocks suspended high off the ground (upper tree logs/leaves) that have air neighbours but
-		// no nearby ground, which the worker can never path up to and would just stall beneath.
+		
 		if (!hasReachableStandSpot(bp))
 			return false;
 		
-		// not targeted by another nearby worker
-		AABB aabb = AABB.ofSize(this.mob.position(), REACH_RANGE * 2,REACH_RANGE * 2,REACH_RANGE * 2);
+		
+		AABB aabb = AABB.ofSize(this.mob.position(), REACH_RANGE * 2, REACH_RANGE * 2, REACH_RANGE * 2);
 		for (LivingEntity entity : this.mob.level().getNearbyEntities(LivingEntity.class, TargetingConditions.forNonCombat(), this.mob, aabb)) {
 			if (entity instanceof Unit unit) {
 				if (unit instanceof WorkerUnit workerUnit && workerUnit.getGatherResourceGoal() != null && entity.getId() != this.mob.getId()) {
@@ -138,40 +113,37 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 		return true;
 	};
 	
-	// set move goal as range -1, so we aren't slightly out of range
 	public WineFoxGatherResourcesGoal(Mob mob) {
 		super(mob);
 	}
 	
-	// moveReachRange is REACH_RANGE-1 (4), so the base recalc threshold is 16, but isBlockInRange() gathers
-	// out to REACH_RANGE (5). That 4-5 block band is where a worker is gathering yet still "too far ->
-	// repath", which makes it shuffle back and forth. Match the threshold to the gather reach so a worker in
-	// range to chop never triggers a recalc; a genuinely-unreachable block is dropped by NO_TARGET_TIMEOUT /
-	// TICKS_STATIONARY_TIMEOUT instead.
+	private static int resourceToHoldingStat(ResourceName resourceName, int current) {
+		return switch (resourceName) {
+			case FOOD -> WineFoxSalespersonUnit.HOLD_FOOD;
+			case WOOD -> WineFoxSalespersonUnit.HOLD_WOOD;
+			case ORE -> WineFoxSalespersonUnit.HOLD_ORE;
+			default -> current;
+		};
+	}
+	
 	@Override
-	public double getMinDistToRecalculateSqr() {
-		return Math.max(super.getMinDistToRecalculateSqr(), REACH_RANGE * REACH_RANGE);
-	}
-	
-	public void syncFromServer(ResourceName gatherName, BlockPos gatherPos, int gatherTicks) {
-		this.data.targetResourceName = gatherName;
-		this.data.gatherTarget = gatherPos;
-		this.gatherTicksLeft = gatherTicks;
-		this.data.targetResourceSource = ResourceSources.getFromBlockPos(data.gatherTarget, mob.level());
-	}
-	
-	public void tickClient() {
-		if (data.targetResourceSource != null && this.data.gatherTarget != null && isGathering() && FogOfWarClientEvents.isInBrightChunk(this.data.gatherTarget)) {
-			gatherTicksLeft = Math.min(gatherTicksLeft, data.targetResourceSource.ticksToGather);
-			gatherTicksLeft -= 1;
-			if (gatherTicksLeft <= 0)
-				gatherTicksLeft = data.targetResourceSource.ticksToGather;
-			int gatherProgress = Math.round((data.targetResourceSource.ticksToGather - gatherTicksLeft) / (float) data.targetResourceSource.ticksToGather * 10);
-			this.mob.level().destroyBlockProgress(this.mob.getId(), data.gatherTarget, gatherProgress);
+	public void start() {
+		super.start();
+		if (this.mob.level().isClientSide() || !(this.mob instanceof WineFoxSalespersonUnit winefox))
+			return;
+		if (!isGathering()) {
+			winefox.setHoldingStat(resourceToHoldingStat(this.getTargetResourceName(), winefox.getHoldingStat()));
 		}
 	}
 	
-	// move towards the targeted block and start gathering it
+	@Override
+	public void setTargetResourceName(ResourceName resourceName) {
+		super.setTargetResourceName(resourceName);
+		if (this.mob.level().isClientSide() || !(this.mob instanceof WineFoxSalespersonUnit winefox))
+			return;
+		winefox.setHoldingStat(resourceToHoldingStat(resourceName, winefox.getHoldingStat()));
+	}
+	
 	public void tick() {
 		if (this.mob.level().isClientSide()) {
 			tickClient();
@@ -185,9 +157,8 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 			return;
 		
 		if (data.gatherTarget == null && data.targetResourceName != ResourceName.NONE) {
-			searchCdTicksLeft -= (int) (TICK_CD / 2); // for some this is run twice as fast as we expect
+			searchCdTicksLeft -= (int) (TICK_CD / 2);
 			
-			// prioritise gathering adjacent targets first
 			for (BlockPos todoBp : data.todoGatherTargets)
 				if (BLOCK_CONDITION.test(todoBp)) {
 					data.gatherTarget = todoBp;
@@ -205,21 +176,18 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 							break;
 						}
 					}
-				}
-				else {
+				} else {
 					Optional<BlockPos> bpOpt;
 					if (altSearchPos != null) {
 						bpOpt = ResourceIndex.get(mob.level()).findClosest(
 							mob.level(), altSearchPos, REACH_RANGE / 2, data.targetResourceName, BLOCK_CONDITION);
 						altSearchPos = null;
-					}
-					else {
-						// increase search range until we've maxed out (to prevent idle workers using up too much CPU)
+					} else {
+						
 						int range = REACH_RANGE * (failedSearches + 1);
 						if (failedSearches > MAX_FAILED_SEARCHES) {
-							//System.out.println("Failed too many searches.");
+							
 							stopGathering();
-							ticksIdle += 200;
 						}
 						
 						bpOpt = ResourceIndex.get(mob.level()).findClosest(
@@ -248,8 +216,6 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 		
 		if (data.gatherTarget != null) {
 			
-			// if the mob is not gathering and not moving, it's likely trying to reach a block out of reach
-			// so remove the target and start looking passively after a timeout
 			if (this.mob.getOnPos().equals(lastOnPos) && !isGathering())
 				ticksStationaryWithTarget += (int) TICK_CD;
 			else
@@ -262,23 +228,18 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 			}
 			lastOnPos = this.mob.getOnPos();
 			
-			// if the block is no longer valid (destroyed or somehow badly targeted)
 			if (!BLOCK_CONDITION.test(this.data.gatherTarget))
 				removeGatherTarget();
-			else // keep persistently moving towards the target
+			else
 				setMoveTarget(data.gatherTarget);
 			
 			if (isGathering()) {
-				ticksIdle = 0;
 				
-				// need to manually set cooldown higher (default is 2) or else we don't have enough time
-				// for the mob to turn before behaviour is reset
 				mob.getLookControl().setLookAt(data.gatherTarget.getX(), data.gatherTarget.getY(), data.gatherTarget.getZ());
 				mob.getLookControl().lookAtCooldown = 20;
 				
 				BlockState bsTarget = mob.level().getBlockState(data.gatherTarget);
 				
-				// replant crops on empty farmland
 				if (bsTarget.getBlock() == Blocks.FARMLAND || bsTarget.getBlock() == Blocks.SOUL_SAND) {
 					gatherTicksLeft -= (TICK_CD / 2);
 					gatherTicksLeft = Math.min(gatherTicksLeft, ResourceSources.REPLANT_TICKS_MAX);
@@ -291,8 +252,7 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 							removeGatherTarget();
 						}
 					}
-				}
-				else {
+				} else {
 					float ticksToProgress;
 					
 					if (ResearchServerEvents.playerHasCheat(((Unit) mob).getOwnerName(), "operationcwal"))
@@ -304,7 +264,7 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 						if (ResourceSources.getBlockResourceName(getGatherTarget(), mob.level()) == ResourceName.WOOD && vUnit.isVeteran())
 							ticksToProgress *= WineFoxSalespersonUnit.LUMBERJACK_SPEED_MULT_VETERAN;
 						else if (ResourceSources.getBlockResourceName(getGatherTarget(), mob.level()) == ResourceName.ORE && vUnit.isVeteran())
-								ticksToProgress *= WineFoxSalespersonUnit.MINER_SPEED_MULT_VETERAN;
+							ticksToProgress *= WineFoxSalespersonUnit.MINER_SPEED_MULT_VETERAN;
 						ticksToProgress *= CivilEnchantment.getEfficiencyMultiplier(vUnit);
 					}
 					
@@ -339,7 +299,6 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 									vUnit.incrementExp(100);
 							}
 							
-							// replace workers' mine ores with cobble to prevent creating potholes
 							if (data.targetResourceSource != null && data.targetResourceSource.resourceName == ResourceName.ORE && bsTarget.getBlock() != Blocks.POINTED_DRIPSTONE) {
 								BlockState replaceBs;
 								if (BuildingUtils.isInNetherRange(mob.level().isClientSide(), data.gatherTarget))
@@ -351,7 +310,7 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 								this.mob.level().setBlockAndUpdate(data.gatherTarget, replaceBs);
 							}
 							
-							// prioritise gathering adjacent targets first
+							
 							data.todoGatherTargets.remove(data.gatherTarget);
 							for (BlockPos pos : MiscUtil.findAdjacentBlocks(data.gatherTarget, BLOCK_CONDITION))
 								if (!data.todoGatherTargets.contains(pos))
@@ -361,7 +320,7 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 							unit.getItems().add(new ItemStack(data.targetResourceSource.items.get(0)));
 							UnitSyncClientboundPacket.sendSyncResourcesPacket(unit);
 							
-							// if at max resources, go to drop off automatically, then return to this gather goal
+							
 							if (Unit.atThresholdResources(unit))
 								saveAndReturnResources();
 							
@@ -369,51 +328,20 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 						}
 					}
 				}
-			}
-			else {
-				// track how long we've been without a target
-				// if we have spent too long still then we are stuck andreevaulate our gather target
+			} else {
 				if (mob.getNavigation().isDone())
 					ticksWithoutTarget += (int) (TICK_CD / 2);
 				if (ticksWithoutTarget >= NO_TARGET_TIMEOUT)
 					this.removeGatherTarget();
 			}
-		} else {
-			ticksIdle += (int) (TICK_CD / 2);
 		}
 	}
 	
-	public void saveAndReturnResources() {
-		Unit unit = (Unit) mob;
-		if (unit.getReturnResourcesGoal() != null) {
-			this.saveState();
-			unit.resetBehaviours();
-			WorkerUnit.resetBehaviours((WorkerUnit) unit);
-			unit.getReturnResourcesGoal().returnToClosestBuilding();
-		}
-	}
-	
-	private void saveState() {
-		saveData.todoGatherTargets.clear();
-		saveData.todoGatherTargets.addAll(data.todoGatherTargets);
-		saveData.gatherTarget = data.gatherTarget;
-		saveData.targetResourceName = data.targetResourceName;
-		saveData.targetResourceSource = data.targetResourceSource;
-		saveData.targetFarm = data.targetFarm;
-		savePermState();
-	}
-	
-	
-	// True if a worker can stand somewhere adjacent to bp (within mining reach) to gather it: a cell with a
-	// solid floor below and clear feet+head, in one of the 4 cardinal neighbour columns across a vertical band
-	// from one above down to MAX_REACH_DOWN below. A block high in the air (no ground in any neighbour column)
-	// fails - that's the "very high tree" case. Checked nearest-first in BLOCK_CONDITION, so a reachable base
-	// log usually passes immediately and we rarely scan the full band.
 	private boolean hasReachableStandSpot(BlockPos bp) {
 		var level = mob.level();
 		for (BlockPos side : List.of(bp.north(), bp.south(), bp.east(), bp.west())) {
 			for (int dy = 1; dy >= -MAX_REACH_DOWN; dy--) {
-				BlockPos feet = side.above(dy); // above(negative) = below
+				BlockPos feet = side.above(dy);
 				if (!MiscUtil.isSolidBlocking(level, feet)
 					&& !MiscUtil.isSolidBlocking(level, feet.above())
 					&& MiscUtil.isSolidBlocking(level, feet.below()))
@@ -423,82 +351,22 @@ public class WineFoxGatherResourcesGoal extends GatherResourcesGoal {
 		return false;
 	}
 	
-	private boolean isBlockInRange(BlockPos target) {
-		// always in range if the gatherer is assigned to a farm
-		if (getTargetFarm() != null &&
-			getTargetFarm().isPosInsideBuilding(mob.getOnPos()) &&
-			getGatherTarget() != null &&
-			getTargetFarm().isPosInsideBuilding(getGatherTarget()))
-			return true;
-		
-		return target.distToCenterSqr(mob.getX(), mob.getEyeY(), mob.getZ()) <= REACH_RANGE * REACH_RANGE;
-	}
-	
-	// only count as gathering if in range of the target. The CLIENT trusts the server-synced value (its
-	// entity position is interpolated, so it can't compute isBlockInRange consistently); the SERVER computes
-	// it authoritatively and syncs it via UnitSyncWorkerClientBoundPacket.
-	public boolean isGathering() {
-		if (this.mob.level().isClientSide())
-			return isGatheringServerside;
-		
-		if (!Unit.atMaxResources((Unit) mob) && this.data.gatherTarget != null && this.data.targetResourceSource != null &&
-			ResourceSources.getBlockResourceName(this.data.gatherTarget, mob.level()) != ResourceName.NONE)
-			return isBlockInRange(data.gatherTarget);
-		return false;
-	}
-	
 	private boolean canAffordReplant() {
 		return ResourcesServerEvents.canAfford(((Unit) mob).getOwnerName(), ResourceName.WOOD, getReplantWoodCost());
 	}
 	
+	private int getReplantWoodCost() {
+		return ResourceCosts.REDUCED_REPLANT_WOOD_COST;
+	}
+	
 	@Override
-	public void setMoveTarget(@Nullable BlockPos bp) {
-		if (bp != null) {
-			MiscUtil.addUnitCheckpoint((Unit) mob, bp, true);
+	public void stop() {
+		super.stop();
+		if (this.mob.level().isClientSide() || !(this.mob instanceof WineFoxSalespersonUnit winefox))
+			return;
+		if (winefox.getHoldingStat() >= WineFoxSalespersonUnit.HOLD_FOOD) {
+			winefox.setHoldingStat(WineFoxSalespersonUnit.HOLD_NONE);
+			winefox.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 		}
-		// if assigned to a farm and not on that farm, keep retrying movement to avoid getting stuck
-		if (getTargetFarm() != null && !getTargetFarm().isPosInsideBuilding(mob.getOnPos())) {
-			this.moveReachRange = 2;
-			super.setMoveTarget(getTargetFarm().centrePos);
-			super.start();
-		} else {
-			this.moveReachRange = REACH_RANGE - 1;
-			super.setMoveTarget(bp);
-		}
-		if (BLOCK_CONDITION.test(bp)) {
-			this.data.gatherTarget = bp;
-			this.data.targetResourceSource = ResourceSources.getFromBlockPos(data.gatherTarget, this.mob.level());
-		}
-		
-	}
-	
-	// stop attempting to gather the current target but continue searching
-	public void removeGatherTarget() {
-		data.gatherTarget = null;
-		data.targetResourceSource = null;
-		gatherTicksLeft = DEFAULT_MAX_GATHER_TICKS;
-		searchCdTicksLeft = 0;
-		ticksWithoutTarget = 0;
-	}
-	
-	// stop gathering and searching entirely, and remove saved data for
-	public void stopGathering() {
-		ticksIdle = IDLE_TIMEOUT;
-		failedSearches = 0;
-		this.savePermState();
-		this.mob.level().destroyBlockProgress(this.mob.getId(), new BlockPos(0,0,0), 0);
-		data.todoGatherTargets.clear();
-		data.targetFarm = null;
-		removeGatherTarget();
-		this.setTargetResourceName(ResourceName.NONE);
-		super.stopMoving();
-	}
-	
-	public int getGatherTicksLeft() {
-		return (int) gatherTicksLeft;
-	}
-	
-	public boolean isIdle() {
-		return ticksIdle > IDLE_TIMEOUT;
 	}
 }

@@ -1,21 +1,23 @@
 package net.xiaohuige_hhy.winefoxfaction.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.solegendary.reignofnether.building.BuildingPlacement;
-import com.solegendary.reignofnether.building.BuildingServerEvents;
-import com.solegendary.reignofnether.unit.interfaces.Unit;
 import com.solegendary.reignofnether.unit.interfaces.WorkerUnit;
 
+import net.minecraft.server.level.ServerLevel;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxSalespersonUnit;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 
 @Mixin(BuildingPlacement.class)
 public class BuildingPlacementMixin {
-
+	
 	@Redirect(method = "handleServerTick", remap = false,
 		at = @At(value = "INVOKE", remap = false,
 			target = "Ljava/util/ArrayList;size()I"))
@@ -24,30 +26,17 @@ public class BuildingPlacementMixin {
 		for (WorkerUnit workerUnit : workerUnits) {
 			if (workerUnit instanceof WineFoxSalespersonUnit salesperson) {
 				if (salesperson.isVeteran())
-					builderCount += 2;
-				else
 					builderCount += 1;
 			}
 		}
 		return builderCount;
 	}
-
-	@Redirect(method = "handleServerTick", remap = false,
-		at = @At(value = "INVOKE", remap = false,
-			target = "Lcom/solegendary/reignofnether/unit/interfaces/Unit;getOwnerName()Ljava/lang/String;"))
-	private String giveSalespersonBuilderExp(Unit builder) {
-		String ownerName = builder.getOwnerName();
-		if (builder instanceof WineFoxSalespersonUnit salesperson) {
-			var count = 0;
-			for (BuildingPlacement placement : BuildingServerEvents.getBuildings()) {
-				if (!placement.ownerName.equals(ownerName)) continue;
-				count++;
-				if (count <= 1) continue;
-				salesperson.incrementExp(1);
-				break;
-			}
-		}
-		return ownerName;
+	
+	@Inject(method = "handleServerTick", remap = false,
+		at = @At(value = "INVOKE", target = "Lcom/solegendary/reignofnether/building/BuildingPlacement;queueNextBlock(Lnet/minecraft/server/level/ServerLevel;Ljava/lang/String;)V", ordinal = 0))
+	private void addSalespersonExp(ServerLevel serverLevel, float blocksPlaced, float blocksTotal, CallbackInfo ci, @Local(name = "count", index = 10, ordinal = 0) int count, @Local(name = "wUnit") WorkerUnit unit) {
+		if (count > 1 && unit instanceof WineFoxSalespersonUnit winefox)
+			winefox.incrementExp(5);
 	}
-
+	
 }

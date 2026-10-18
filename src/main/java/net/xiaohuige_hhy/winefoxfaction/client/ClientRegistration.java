@@ -8,7 +8,7 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.xiaohuige_hhy.winefoxfaction.WineFoxFactionMod;
-import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
+import net.xiaohuige_hhy.winefoxfaction.init.ModEntities;
 
 @Mod.EventBusSubscriber(modid = WineFoxFactionMod.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ClientRegistration {
@@ -18,6 +18,7 @@ public final class ClientRegistration {
 	public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
 		event.registerEntityRenderer(ModEntities.WINE_FOX.get(), EntityMaidRenderer::new);
 		event.registerEntityRenderer(ModEntities.WINEFOX_BLUE.get(), EntityMaidRenderer::new);
+		event.registerEntityRenderer(ModEntities.WINEFOX_MAGICAL.get(), EntityMaidRenderer::new);
 		event.registerEntityRenderer(ModEntities.WINEFOX_SALESPERSON.get(), EntityMaidRenderer::new);
 		event.registerEntityRenderer(ModEntities.WINEFOX_LITTLE.get(), EntityMaidRenderer::new);
 		event.registerEntityRenderer(ModEntities.WINEFOX_SNOWBALL.get(), ThrownItemRenderer::new);

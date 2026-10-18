@@ -17,8 +17,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.level.Level;
 import net.xiaohuige_hhy.winefoxfaction.WineFoxFactionMod;
-import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
-import net.xiaohuige_hhy.winefoxfaction.register.ModResourceCosts;
+import net.xiaohuige_hhy.winefoxfaction.init.ModEntities;
+import net.xiaohuige_hhy.winefoxfaction.init.ModResourceCosts;
 
 import java.util.ArrayList;
 import java.util.List;

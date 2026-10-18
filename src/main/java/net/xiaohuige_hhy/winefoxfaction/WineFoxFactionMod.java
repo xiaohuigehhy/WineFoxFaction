@@ -14,11 +14,13 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.xiaohuige_hhy.winefoxfaction.register.ModEntities;
-import net.xiaohuige_hhy.winefoxfaction.register.ModItems;
-import net.xiaohuige_hhy.winefoxfaction.register.ModResourceCosts;
+import net.xiaohuige_hhy.winefoxfaction.init.ModEntities;
+import net.xiaohuige_hhy.winefoxfaction.init.ModItems;
+import net.xiaohuige_hhy.winefoxfaction.init.ModNetwork;
+import net.xiaohuige_hhy.winefoxfaction.init.ModResourceCosts;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxBlueUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxLittleUnit;
+import net.xiaohuige_hhy.winefoxfaction.units.WineFoxMagicalUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxSalespersonUnit;
 import net.xiaohuige_hhy.winefoxfaction.units.WineFoxUnit;
 
@@ -49,6 +51,7 @@ public class WineFoxFactionMod {
 	public static void registerEntityAttributes(EntityAttributeCreationEvent event) {
 		event.put(ModEntities.WINE_FOX.get(), WineFoxUnit.createAttributes().build());
 		event.put(ModEntities.WINEFOX_BLUE.get(), WineFoxBlueUnit.createAttributes().build());
+		event.put(ModEntities.WINEFOX_MAGICAL.get(), WineFoxMagicalUnit.createAttributes().build());
 		event.put(ModEntities.WINEFOX_SALESPERSON.get(), WineFoxSalespersonUnit.createAttributes().build());
 		event.put(ModEntities.WINEFOX_LITTLE.get(), WineFoxLittleUnit.createAttributes().build());
 	}
@@ -57,6 +60,7 @@ public class WineFoxFactionMod {
 		if (event.getTabKey().equals(CreativeModeTabs.SPAWN_EGGS)) {
 			event.accept(ModItems.WINE_FOX_EGG);
 			event.accept(ModItems.WINE_FOX_BLUE_EGG);
+			event.accept(ModItems.WINE_FOX_MAGICAL_EGG);
 			event.accept(ModItems.WINE_FOX_SALESPERSON_EGG);
 			event.accept(ModItems.WINE_FOX_LITTLE_EGG);
 		}
@@ -66,6 +70,7 @@ public class WineFoxFactionMod {
 	}
 
 	private void commonSetup(final FMLCommonSetupEvent event) {
+		ModNetwork.init();
 		ModResourceCosts.deferredLoadResourceCosts();
 	}
 
